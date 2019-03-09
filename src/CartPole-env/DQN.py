@@ -1,4 +1,3 @@
-#ToDo: Restructuring + adding comments
 from keras.models import Sequential
 from keras.layers import Dense, Conv2D, Flatten
 from keras import optimizers
@@ -9,14 +8,18 @@ from Replay_Memory import ReplayMemory
 
 class DQN:
 
-    def __init__(self, action_size):
+    def __init__(self, action_size, gamma=0.99, eps_dec=0.99, lr=0.00025):
         self.action_size = action_size
         self.memory = ReplayMemory(1000000)
-        self.gamma = 0.99    # discount rate
-        self.epsilon = 1.0  # exploration rate
+        # Discount rate
+        self.gamma = gamma
+        # Setup epsilon-greedy parameters
+        self.epsilon = 1.0
         self.epsilon_min = 0.01
-        self.epsilon_decay = 0.99
-        self.learning_rate = 0.00025
+        self.epsilon_decay = eps_dec
+        # Learning rate
+        self.learning_rate = lr
+        # Iterative update
         self.step = 0
         self.C = 5
 
@@ -35,7 +38,7 @@ class DQN:
     def replay(self, batch_size):
         minibatch = self.memory.sample(batch_size)
         for state, action, next_state, reward, done in minibatch:
-            # Y = r if done ; else Y = r + gamma * max (target_Q(new state, action))
+            # target = r if done ; else target = r + gamma * max (target_Q(new state, action))
             target = reward
             if not done:
                 target = reward + self.gamma * np.amax(self.target_model.predict(next_state)[0])
@@ -56,9 +59,9 @@ class DQN:
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay
 
+    # This method defines the used architecture, current architecture is the best I found so far.
     def create_model(self):
         model = Sequential()
-
         model.add(Dense(12, activation='relu', input_shape=(4,)))
         model.add(Dense(24, activation='relu'))
         model.add(Dense(12, activation='relu'))
@@ -66,11 +69,12 @@ class DQN:
         model.compile(loss="mean_squared_error", optimizer=optimizers.Adam(lr=self.learning_rate, clipnorm=1))  # optimizer=optimizers.RMSprop(lr=self.learning_rate, rho=self.gamma, epsilon=self.epsilon, decay=self.epsilon_decay, clipnorm=1))
         return model
 
+    # Use these methods to save and load weights
     def save(self):
-        self.target_model.save('target_model.h5')
-        self.policy_model.save('policy_model.h5')
+        self.target_model.save_weights('target_model.h5')
+        self.policy_model.save_weights('policy_model.h5')
 
     def load(self):
         self.target_model.load_weights('target_model.h5')
         self.policy_model.load_weights('policy_model.h5')
-        # print(self.policy_model.get_weights())
+        print(self.policy_model.get_weights())

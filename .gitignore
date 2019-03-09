@@ -1,2 +1,8 @@
 
 *.pyc
+.idea/Q-Learning.iml
+.idea/workspace.xml
+.idea/misc.xml
+.idea/Q-Learning.iml
+*.pyc
+*.iml
