@@ -78,7 +78,7 @@ class DQN:
         model.add(Dense(24, activation='relu'))
         model.add(Dense(12, activation='relu'))
         model.add(Dense(self.action_size, activation='relu'))
-        model.compile(loss="mean_squared_error", optimizer=optimizers.Adam(lr=self.learning_rate, clipnorm=1))  # optimizer=optimizers.RMSprop(lr=self.learning_rate, rho=self.gamma, epsilon=self.epsilon, decay=self.epsilon_decay, clipnorm=1))
+        model.compile(loss="mean_squared_error", optimizer=optimizers.Adam(lr=self.learning_rate, clipnorm=1))
         return model
 
     # Use these methods to save and load weights

@@ -30,8 +30,8 @@ def plot_rewards():
 #INIT
 env = gym.make('CartPole-v1')
 env.reset()
-TRAINING_EPISODES = 300
-EVALUATION_EPISODES = 150
+TRAINING_EPISODES = 999
+EVALUATION_EPISODES = 300
 current_action = 0
 state = None
 next_state = None
@@ -58,7 +58,7 @@ for t in range(0, TRAINING_EPISODES + EVALUATION_EPISODES):
         print("-------------------TRAINING-------------------")
         # Random NO-OP start (there is no NO-OP, so do a random amount of random actions instead)
         print("-----Random start:")
-        for r in range(0, random.randint(0, 5)):
+        for r in range(0, random.randint(0, 3)):
             current_action = random.randint(0, 1)
             next_state, reward, done, _ = env.step(current_action)
             next_state = np.expand_dims(next_state, axis=0)
@@ -74,6 +74,11 @@ for t in range(0, TRAINING_EPISODES + EVALUATION_EPISODES):
     while not done:
         env.render()
         state = next_state
+
+        # Keep learning from mistakes, but don't use training-experiences
+        if t == TRAINING_EPISODES:
+            network.memory.memory.clear()
+            network.memory.position = 0
 
         #Select next action
         if t < TRAINING_EPISODES:
@@ -96,7 +101,7 @@ for t in range(0, TRAINING_EPISODES + EVALUATION_EPISODES):
 
         #Replay
         #Ability to stop training when evaluating
-        if network.memory.__len__() > 32 and t < TRAINING_EPISODES:
+        if network.memory.__len__() > 32:
             network.replay(32)
 
     env.reset()
