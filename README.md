@@ -13,7 +13,7 @@ Current algorithms:
 Beamrider-v4 was used as Atari environment, but with some small changes the algorithms can be used in other atari environments as well.
 
 ## Structure
-The source and results folder have the same structure, the results (csv files and extracted graphs) from the algorithms that can be found in the source folder are put in the results folder. The different algorithms are trained in the environment while running the main.py file that can be found in the same location as the algorithms. This main.py file does the necessary preprocessing, manages the results and the training and evaluating of the algorithms. 
+The source and results folder have the same structure, the results (csv files and extracted graphs) from the algorithms that can be found in the source folder are put in the results folder. The different algorithms are trained in the environment while running the main.py file that can be found in the same location as the algorithms. This main.py file does the necessary preprocessing, manages the results and the training and evaluation of the algorithms. 
 
 ## References
 Used algorithms come from following papers:
