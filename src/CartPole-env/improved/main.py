@@ -65,6 +65,9 @@ for t in range(0, TRAINING_EPISODES + EVALUATION_EPISODES):
             print(ACTIONS[current_action])
     else:
         print("-------------------EVALUATING-------------------")
+        current_action = random.randint(0, 1)
+        next_state, reward, done, _ = env.step(current_action)
+        next_state = np.expand_dims(next_state, axis=0)
 
     print("-----Start:")
     episode_rewards.append(0)
