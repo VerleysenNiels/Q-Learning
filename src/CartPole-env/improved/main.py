@@ -30,7 +30,7 @@ def plot_rewards():
 #INIT
 env = gym.make('CartPole-v1')
 env.reset()
-TRAINING_EPISODES = 999
+TRAINING_EPISODES = 200
 EVALUATION_EPISODES = 300
 current_action = 0
 state = None
@@ -41,10 +41,10 @@ file = open("Rewards.csv", "w")
 writer = csv.writer(file, delimiter=',')
 
 #Deep Q-Network
-network = DQN(2)
+#network = DQN(2)
 
 #Double DQN
-#network = DoubleDQN(2)
+network = DoubleDQN(2)
 
 #Dueling DQN
 #network = DuelingDQN(2)
@@ -105,8 +105,8 @@ for t in range(0, TRAINING_EPISODES + EVALUATION_EPISODES):
             network.replay(32)
 
     env.reset()
-    if t % 10 == 0:
-        plot_rewards()
+    #if t % 10 == 0:
+     #   plot_rewards()
 
     if t % 100 == 0:
         network.save()
