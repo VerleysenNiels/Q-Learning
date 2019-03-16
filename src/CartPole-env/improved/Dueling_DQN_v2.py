@@ -1,4 +1,3 @@
-#ToDo: Restructuring + adding comments
 from keras.models import Model
 from keras.layers import Input, Dense, Lambda
 from keras import optimizers
@@ -10,28 +9,44 @@ from Replay_Memory import ReplayMemory
 
 class DuelingDQN:
 
-    def __init__(self, action_size):
+    def __init__(self, action_size, gamma=0.99, eps_dec=0.99, lr=0.00025):
         self.action_size = action_size
         self.memory = ReplayMemory(1000000)
-        self.gamma = 0.99  # discount rate
-        self.epsilon = 1.0  # exploration rate
-        self.epsilon_min = 0.01
-        self.epsilon_decay = 0.99
-        self.learning_rate = 0.00025
+        # Discount rate
+        self.gamma = gamma
+        # Setup epsilon-greedy parameters
+        self.epsilon = 1.0
+        self.epsilon_min = 0.2
+        self.epsilon_decay = eps_dec
+        # Learning rate
+        self.learning_rate = lr
+        # Iterative update
         self.step = 0
         self.C = 5
 
         self.target_model = self.create_model()
         self.policy_model = self.create_model()
 
+    # Return the action with the highest estimated Q-value
     def act(self, state):
+        act_values = self.policy_model.predict(state, batch_size=1)
+        print(act_values)
+        return np.argmax(act_values[0])  # returns action
+
+    # Return a weighted random action where the estimated Q-values are used as weights
+    # Also apply epsilon-greedy action selection
+    def act_stochastic(self, state):
         if np.random.rand() <= self.epsilon:
             print("random")
             return random.randrange(self.action_size)
         print("network")
         act_values = self.policy_model.predict(state, batch_size=1)
         print(act_values)
-        return np.argmax(act_values[0])  # returns action
+        total = np.sum(act_values[0]) + 0.2
+        # FIX: make sure that sum equals to 1
+        diff = 1 - (act_values[0][0] + 0.1) / total - (act_values[0][1] + 0.1) / total
+        # Return weighted random chosen action
+        return np.random.choice([0, 1], p=[(x + 0.1) / total + diff / 2 for x in act_values[0]])
 
     def replay(self, batch_size):
         minibatch = self.memory.sample(batch_size)
@@ -42,12 +57,6 @@ class DuelingDQN:
                 target = reward + self.gamma * np.amax(self.target_model.predict(next_state)[0])
             # Update policy_model
             target_f = self.policy_model.predict(state)
-            '''print('---------------------------------------')
-            print('TARGET')
-            print(target)
-            print('TARGET_F')
-            print(target_f)
-            print('---------------------------------------')'''
             target_f[0][action] = (target - target_f[0][action]) * (target - target_f[0][action])
             self.policy_model.fit(state, target_f, epochs=1, verbose=0)
 
@@ -65,8 +74,8 @@ class DuelingDQN:
 
     def create_model(self):
         input = Input(shape=(4,))
-        fc1 = Dense(16, activation='relu')(input)
-        fc2 = Dense(32, activation='relu')(fc1)
+        fc1 = Dense(12, activation='relu')(input)
+        fc2 = Dense(24, activation='relu')(fc1)
 
         #VALUE FUNCTION ESTIMATOR
         val1 = Dense(12, activation='relu')(fc2)
@@ -91,4 +100,4 @@ class DuelingDQN:
     def load(self):
         self.target_model.load_weights('target_model.h5')
         self.policy_model.load_weights('policy_model.h5')
-        # print(self.policy_model.get_weights())
+        print(self.policy_model.get_weights())
