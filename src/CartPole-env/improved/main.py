@@ -30,7 +30,7 @@ def plot_rewards():
 #INIT
 env = gym.make('CartPole-v1')
 env.reset()
-TRAINING_EPISODES = 350
+TRAINING_EPISODES = 400
 EVALUATION_EPISODES = 200
 current_action = 0
 state = None
@@ -105,8 +105,8 @@ for t in range(0, TRAINING_EPISODES + EVALUATION_EPISODES):
             network.replay(32)
 
     env.reset()
-    if t % 10 == 0:
-        plot_rewards()
+    #if t % 10 == 0:
+    #    plot_rewards()
 
     if t % 100 == 0:
         network.save()
