@@ -2,8 +2,8 @@ import gym
 import cv2
 import csv
 import numpy as np
-from DQN import DQN
-from Double_DQN import DoubleDQN
+from DQN_Boxing import DQN
+from Double_DQN_Boxing import DoubleDQN
 import matplotlib.pyplot as plt
 import random
 import csv
@@ -59,17 +59,16 @@ state = None
 done = 0
 
 file = open("Rewards.csv", "w")
-writer = csv.writer(file, delimiter=',')
 
 ACTIONS = [0, 1, 2, 3, 4, 5]
 ACTION_MEANINGS = ['NO-OP', 'FIRE', 'UP', 'RIGHT', 'LEFT', 'DOWN']
 
 # ---------------CHOOSE NETWORK-------------------
 # Deep Q-Network
-network = DQN(4)
+network = DQN(6)
 
 # Double DQN
-#network = DoubleDQN(4)
+#network = DoubleDQN(6)
 
 # ------------------------------------------------
 
@@ -109,10 +108,10 @@ for t in range(0, TRAINING_EPISODES + EVALUATION_EPISODES):
             network.memory.position = 0
 
         # Select next action
-        #if t < TRAINING_EPISODES:
-            #current_action = network.act_stochastic(state)
-        #else:
-        current_action = network.act(state)
+        if t < TRAINING_EPISODES:
+            current_action = network.act_stochastic(state)
+        else:
+            current_action = network.act(state)
 
         print(ACTION_MEANINGS[current_action])
 
@@ -137,6 +136,7 @@ for t in range(0, TRAINING_EPISODES + EVALUATION_EPISODES):
         # If your hardware allows, you can increase the size of the minibatch
         if network.memory.__len__() > 32:
             network.replay(32)
+
     env.reset()
     if t % 10 == 0:
         plot_rewards()
