@@ -65,10 +65,10 @@ ACTION_MEANINGS = ['NO-OP', 'FIRE', 'UP', 'RIGHT', 'LEFT', 'DOWN']
 
 # ---------------CHOOSE NETWORK-------------------
 # Deep Q-Network
-network = DQN(6)
+#network = DQN(6)
 
 # Double DQN
-#network = DoubleDQN(6)
+network = DoubleDQN(6)
 
 # ------------------------------------------------
 
