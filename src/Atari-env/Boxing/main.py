@@ -4,6 +4,8 @@ import csv
 import numpy as np
 from DQN_Boxing import DQN
 from Double_DQN_Boxing import DoubleDQN
+from Dueling_DQN_Boxing import DuelingDQN
+from Dueling_Double_DQN_Boxing import DuelingDoubleDQN
 import matplotlib.pyplot as plt
 import random
 import csv
@@ -68,7 +70,13 @@ ACTION_MEANINGS = ['NO-OP', 'FIRE', 'UP', 'RIGHT', 'LEFT', 'DOWN']
 #network = DQN(6)
 
 # Double DQN
-network = DoubleDQN(6)
+#network = DoubleDQN(6)
+
+# Dueling DQN
+#network = DuelingDQN(6)
+
+# Dueling Double DQN
+network = DuelingDoubleDQN(6)
 
 # ------------------------------------------------
 
