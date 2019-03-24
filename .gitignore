@@ -6,3 +6,5 @@
 .idea/Q-Learning.iml
 *.pyc
 *.iml
+*.pyc
+*.xml
