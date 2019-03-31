@@ -1,21 +1,21 @@
-#ToDo: Restructuring
 import gym
 import cv2
 import numpy as np
-from DQN import DQN
-from Double_DQN import DoubleDQN
-from Dueling_Double_DQN import DuelingDoubleDQN
-from Dueling_DQN import DuelingDQN
+from DQN_v2 import DQN
+from Double_DQN_v2 import DoubleDQN
+from Dueling_Double_DQN_v2 import DuelingDoubleDQN
+from Dueling_DQN_v2 import DuelingDQN
 import matplotlib.pyplot as plt
-import csv
+import random
 
-episode_rewards = []
-mean_rewards = []
+import keras.activations
+
+ACTIONS = ['LEFT', 'RIGHT']
 
 plt.ion()
 
 # Plotting
-def plot_rewards():
+def plot_rewards(episode_rewards):
     plt.figure(2)
     plt.clf()
     plt.title('Training...')
@@ -28,63 +28,104 @@ def plot_rewards():
 #INIT
 env = gym.make('CartPole-v1')
 env.reset()
-EPISODES = 500
+TRAINING_EPISODES = 0
+EVALUATION_EPISODES = 500
 current_action = 0
-next_state, _, _, _ = env.step(current_action)
-next_state = np.expand_dims(next_state, axis=0)
+state = None
+next_state = None
+done = 0
+NR_MAX_SCORE = 3
 
-file = open("Rewards.csv", "w")
-writer = csv.writer(file, delimiter=',')
+for net in range(1, 2):
 
-#Deep Q-Network
-network = DQN(2)
+    if net == 0:
+        #Deep Q-Network
+        network = DQN(2)
+        file = open("Rewards_DQN.csv", "w")
+    elif net == 1:
+        #Double DQN
+        network = DoubleDQN(2)
+        file = open("Rewards_DDQN.csv", "w")
+    elif net == 2:
+        #Dueling DQN
+        network = DuelingDQN(2)
+        file = open("Rewards_DUEL_DQN.csv", "w")
+    else:
+        #Dueling Double DQN
+        network = DuelingDoubleDQN(2)
+        file = open("Rewards_DUEL_DDQN.csv", "w")
 
-#Double DQN
-#network = DoubleDQN(2)
+    max_score_counter = 0
+    episode_rewards = []
 
-#Dueling DQN
-#network = DuelingDQN(2)
+    #--------------------------------------------- PLAY -----------------------------------------------------
+    for t in range(0, TRAINING_EPISODES + EVALUATION_EPISODES):
+        if t < TRAINING_EPISODES:
+            print("-------------------TRAINING episode: " + str(t) + "-------------------")
+            # Random NO-OP start (there is no NO-OP, so do a random amount of random actions instead)
+            print("-----Random start:")
+            for r in range(1, random.randint(1, 5)):
+                current_action = random.randint(0, 1)
+                next_state, reward, done, _ = env.step(current_action)
+                next_state = np.expand_dims(next_state, axis=0)
+                print(ACTIONS[current_action])
+        else:
+            print("-------------------EVALUATING-------------------")
+            current_action = random.randint(0, 1)
+            next_state, reward, done, _ = env.step(current_action)
+            next_state = np.expand_dims(next_state, axis=0)
 
-#Dueling Double DQN
-#network = DuelingDoubleDQN(2)
+        print("-----Start:")
+        episode_rewards.append(0)
+        while not done:
+            env.render()
+            state = next_state
 
-#Playing
-for t in range(0, EPISODES):
-    done = 0
-    episode_rewards.append(0)
-    while not done:
-        env.render()
-        state = next_state
-        #Select next action
-        current_action = network.act(state)
-        print(current_action)
+            # Keep learning from mistakes, but don't use training-experiences
+            if t == TRAINING_EPISODES:
+                network.memory.memory.clear()
 
-        next_state, reward, done, _ = env.step(current_action)
-        next_state = np.expand_dims(next_state, axis=0)
+            #Select next action
+            if t < TRAINING_EPISODES:
+                current_action = network.act_stochastic(state)
+            else:
+                #current_action = network.act(state)
+                current_action = network.act_eps_greedy(state) # Act method from paper
 
-        episode_rewards[t] += reward
+            print(ACTIONS[current_action])
 
-        if done:
-            reward = -0.1
+            next_state, reward, done, _ = env.step(current_action)
+            next_state = np.expand_dims(next_state, axis=0)
 
-        #Push transition to memory
-        network.memory.push(state, current_action, next_state, reward, done)
+            episode_rewards[t] += reward
 
-        #Replay
-        if network.memory.__len__() > 32:
-            network.replay(32)
-    env.reset()
-    if t % 10 == 0:
-        plot_rewards()
+            bool_end = env._max_episode_steps <= env._elapsed_steps + 1
+            if done and not bool_end:
+                reward = 0  # crashed
 
-    if t % 100 == 0:
-        network.save()
+            #Push transition to memory
+            network.memory.push(state, current_action, next_state, reward, done)
 
-    # Write reward to csv file
-    file.write(str(episode_rewards[t]) + '\n')
+            #Replay
+            #Ability to stop training when evaluating
+            if network.memory.__len__() > 32 and max_score_counter < NR_MAX_SCORE:
+                network.replay(32)
 
-file.close()
-plot_rewards()
-cv2.waitKey()
+        env.reset()
+        if t % 10 == 0:
+            plot_rewards(episode_rewards)
+
+        if t % 100 == 0:
+            network.save()
+
+        if episode_rewards[t] >= 499:
+            max_score_counter += 1
+        else:
+            max_score_counter = 0
+
+        # Write reward to csv file
+        file.write(str(episode_rewards[t]) + '\n')
+
+    file.close()
 plt.ioff()
 plt.show()

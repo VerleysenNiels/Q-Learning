@@ -1,9 +1,12 @@
 from keras.models import Sequential
 from keras.layers import Dense, Conv2D, Flatten
+from keras.activations import softmax
 from keras import optimizers
 import random
+import tensorflow as tf
 import numpy as np
 from Replay_Memory import ReplayMemory
+import keras
 
 
 class DQN:
@@ -45,14 +48,7 @@ class DQN:
         # Estimate Q-values
         act_values = self.policy_model.predict(state, batch_size=1)
         print(act_values)
-        # Prepare weights for weighted random choice
-        total = np.sum(act_values[0])
-        # FIX: make sure that sum of the weights is equal to 1
-        diff = 1
-        for x in range(0, self.action_size):
-            diff -= act_values[0][x] / total
-        # Return weighted random chosen action
-        return np.random.choice(self.actions, p=[x / total + diff / self.action_size for x in act_values[0]])
+        return np.random.choice(self.actions, p=keras.backend.eval(softmax(keras.backend.variable(act_values))[0]))
 
     def replay(self, batch_size):
         minibatch = self.memory.sample(batch_size)
@@ -62,9 +58,8 @@ class DQN:
             if not done:
                 target = reward + self.gamma * np.amax(self.target_model.predict(next_state)[0])
             # Update policy_model
-            target_f = self.policy_model.predict(state)
-            # Squared difference
-            target_f[0][action] = (target - target_f[0][action]) * (target - target_f[0][action])
+            target_f = self.policy_model.predict(state, batch_size=1)
+            target_f[0, action] = target    # WRONG? (target - target_f[0][action]) * (target - target_f[0][action])
             self.policy_model.fit(state, target_f, epochs=1, verbose=0)
 
         # Iterative update
@@ -83,14 +78,14 @@ class DQN:
         model = Sequential()
 
         # CNN
-        model.add(Conv2D(32, kernel_size=8, activation='relu', input_shape=(84, 84, 1), strides=4))
-        model.add(Conv2D(64, kernel_size=4, activation='relu', strides=2))
-        model.add(Conv2D(64, kernel_size=3, activation='relu', strides=1))
+        model.add(Conv2D(32, kernel_size=8, activation='elu', input_shape=(84, 84, 1), strides=4, kernel_initializer=keras.initializers.Zeros()))
+        model.add(Conv2D(64, kernel_size=4, activation='elu', strides=2, kernel_initializer=keras.initializers.Zeros()))
+        model.add(Conv2D(64, kernel_size=3, activation='elu', strides=1, kernel_initializer=keras.initializers.Zeros()))
         model.add(Flatten())
 
         # NN
-        model.add(Dense(512, activation='relu'))
-        model.add(Dense(self.action_size, activation='relu'))
+        model.add(Dense(512, activation='elu', kernel_initializer=keras.initializers.Zeros()))
+        model.add(Dense(self.action_size, activation='elu', kernel_initializer=keras.initializers.Zeros()))
         model.compile(loss="mean_squared_error", optimizer=optimizers.RMSprop(lr=self.learning_rate, rho=self.gamma, epsilon=self.epsilon, decay=self.epsilon_decay, clipnorm=1))
         return model
 

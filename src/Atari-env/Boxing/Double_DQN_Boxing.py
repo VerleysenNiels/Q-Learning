@@ -1,7 +1,9 @@
 from keras.models import Sequential
 from keras.layers import Dense, Conv2D, Flatten
 from keras import optimizers
+from keras.activations import softmax
 import random
+import tensorflow as tf
 import numpy as np
 from Replay_Memory import ReplayMemory
 
@@ -45,14 +47,8 @@ class DoubleDQN:
         # Estimate Q-values
         act_values = self.policy_model.predict(state, batch_size=1)
         print(act_values)
-        # Prepare weights for weighted random choice
-        total = np.sum(act_values[0])
-        # FIX: make sure that sum of the weights is equal to 1
-        diff = 1
-        for x in range(0, self.action_size):
-            diff -= act_values[0][x] / total
-        # Return weighted random chosen action
-        return np.random.choice(self.actions, p=[x / total + diff / self.action_size for x in act_values[0]])
+
+        return np.random.choice(self.actions, p=tf.Session().run(softmax(tf.convert_to_tensor(act_values)))[0])
 
     def replay(self, batch_size):
         minibatch = self.memory.sample(batch_size)

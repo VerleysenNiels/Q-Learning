@@ -1,3 +1,6 @@
+import os
+# os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+
 import gym
 import cv2
 import csv
@@ -54,8 +57,8 @@ def plot_rewards():
 # INIT
 env = gym.make('Boxing-v4')
 env.reset()
-TRAINING_EPISODES = 1000
-EVALUATION_EPISODES = 1000
+TRAINING_EPISODES = 50
+EVALUATION_EPISODES = 100
 current_action = 0
 state = None
 done = 0
@@ -67,7 +70,7 @@ ACTION_MEANINGS = ['NO-OP', 'FIRE', 'UP', 'RIGHT', 'LEFT', 'DOWN']
 
 # ---------------CHOOSE NETWORK-------------------
 # Deep Q-Network
-#network = DQN(6)
+network = DQN(6)
 
 # Double DQN
 #network = DoubleDQN(6)
@@ -76,7 +79,7 @@ ACTION_MEANINGS = ['NO-OP', 'FIRE', 'UP', 'RIGHT', 'LEFT', 'DOWN']
 #network = DuelingDQN(6)
 
 # Dueling Double DQN
-network = DuelingDoubleDQN(6)
+#network = DuelingDoubleDQN(6)
 
 # ------------------------------------------------
 
@@ -142,8 +145,9 @@ for t in range(0, TRAINING_EPISODES + EVALUATION_EPISODES):
 
         # Replay
         # If your hardware allows, you can increase the size of the minibatch
-        if network.memory.__len__() > 32:
-            network.replay(32)
+        if t % 5 == 0:
+            if network.memory.__len__() > 32:
+                network.replay(32)
 
     env.reset()
     if t % 10 == 0:

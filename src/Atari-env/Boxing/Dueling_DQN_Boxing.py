@@ -11,7 +11,7 @@ class DuelingDQN:
 
     def __init__(self, action_size, gamma=0.99, eps_dec=0.99, lr=0.00025):
         self.action_size = action_size
-        self.memory = ReplayMemory(1000000)
+        self.memory = ReplayMemory(10000)
         # Discount rate
         self.gamma = gamma
         # Setup epsilon-greedy parameters
