@@ -10,7 +10,7 @@ from Replay_Memory import ReplayMemory
 
 class DoubleDQN:
 
-    def __init__(self, action_size, gamma=0.99, eps_dec=0.99, lr=2.5e-2):
+    def __init__(self, action_size, gamma=0.9, eps_dec=0.9, lr=1.0e-3):
         self.action_size = action_size
         self.memory = ReplayMemory(1000)
         # Discount rate
@@ -70,8 +70,8 @@ class DoubleDQN:
 
     def replay(self, batch_size):
         minibatch = self.memory.sample(batch_size)
-        self.policy_model.fit(np.array(list(map(self.map_states, minibatch))),
-                              np.array(list(map(self.map_targets, minibatch))), verbose=0)
+        for a in minibatch:
+            self.policy_model.fit(np.array(list(map(self.map_states, [a]))), np.array(list(map(self.map_targets, [a]))), verbose=0)
         self.update_epsilon()
 
         # Iterative update
@@ -95,7 +95,7 @@ class DoubleDQN:
 
         model = Sequential()
         model.add(Dense(6, activation='elu', input_shape=(4,)))
-        model.add(Dense(self.action_size, bias_initializer=Constant(100)))
+        model.add(Dense(self.action_size))#, bias_initializer=Constant(100)))
         model.compile(loss=masked_mse, optimizer=optimizers.Adam(lr=self.learning_rate))
         return model
 

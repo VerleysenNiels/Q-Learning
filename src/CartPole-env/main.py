@@ -36,7 +36,7 @@ next_state = None
 done = 0
 NR_MAX_SCORE = 3
 
-for net in range(1, 2):
+for net in range(0, 2):
 
     if net == 0:
         #Deep Q-Network
@@ -94,21 +94,33 @@ for net in range(1, 2):
 
             print(ACTIONS[current_action])
 
+            bool_end = env._max_episode_steps <= env._elapsed_steps + 1
+
+            if bool_end:
+                print(bool_end)
+
             next_state, reward, done, _ = env.step(current_action)
             next_state = np.expand_dims(next_state, axis=0)
 
             episode_rewards[t] += reward
 
-            bool_end = env._max_episode_steps <= env._elapsed_steps + 1
-            if done and not bool_end:
-                reward = 0  # crashed
+            if done:
+                print(done)
 
-            #Push transition to memory
-            network.memory.push(state, current_action, next_state, reward, done)
+            if done and not bool_end:
+                reward = -1.  # crashed
+            else:
+                reward = 0.
+
+            # Push transition to memory
+            if bool_end:
+                network.memory.push(state, current_action, next_state, reward, False)
+            else:
+                network.memory.push(state, current_action, next_state, reward, done)
 
             #Replay
             #Ability to stop training when evaluating
-            if network.memory.__len__() > 32 and max_score_counter < NR_MAX_SCORE:
+            if network.memory.__len__() > 32: # and max_score_counter < NR_MAX_SCORE:
                 network.replay(32)
 
         env.reset()
