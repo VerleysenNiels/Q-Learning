@@ -26,7 +26,7 @@ class DQN:
         self.learning_rate = lr
         # Iterative update
         self.step = 0
-        self.C = 5
+        self.C = 10
 
         self.actions = [x for x in range(0, action_size)]
 
@@ -73,8 +73,7 @@ class DQN:
 
     def replay(self, batch_size):
         minibatch = self.memory.sample(batch_size)
-        for a in minibatch:
-            self.policy_model.fit(np.array(list(map(self.map_states, [a]))), np.array(list(map(self.map_targets, [a]))), verbose=0)
+        history = self.policy_model.fit(np.array(list(map(self.map_states, minibatch))), np.array(list(map(self.map_targets, minibatch))), verbose=0)
         self.update_epsilon()
 
         # Iterative update
@@ -83,6 +82,8 @@ class DQN:
             self.step = 0
         else:
             self.step += 1
+
+        return history
 
     def update_epsilon(self):
         if self.epsilon > self.epsilon_min:
