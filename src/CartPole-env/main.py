@@ -37,7 +37,7 @@ def plot_loss(losses):
 #INIT
 env = gym.make('CartPole-v1')
 env.reset()
-TRAINING_EPISODES = 0
+TRAINING_EPISODES = 50
 EVALUATION_EPISODES = 500
 current_action = 0
 state = None
