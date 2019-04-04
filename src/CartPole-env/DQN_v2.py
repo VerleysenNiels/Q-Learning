@@ -15,7 +15,7 @@ class DQN:
                  lr=1e-3
                  ):
         self.action_size = action_size
-        self.memory = ReplayMemory(1000)
+        self.memory = ReplayMemory(10000)
         # Discount rate
         self.gamma = gamma
         # Setup epsilon-greedy parameters
