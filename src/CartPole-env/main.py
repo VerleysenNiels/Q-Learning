@@ -33,45 +33,59 @@ def plot_loss(losses):
     plt.plot(losses)
     plt.pause(0.001)
 
+def plot_averageQ(averages):
+    plt.figure(3)
+    plt.clf()
+    plt.title('Average Q')
+    plt.xlabel('Epoch')
+    plt.ylabel('Q')
+    plt.plot(averages)
+    plt.pause(0.001)
+
 
 #INIT
 env = gym.make('CartPole-v1')
 env.reset()
 TRAINING_EPISODES = 50
-EVALUATION_EPISODES = 500
+EVALUATION_EPISODES = 1000
 current_action = 0
 state = None
 next_state = None
 done = 0
 NR_MAX_SCORE = 3
 
-for net in range(0, 2):
+for net in range(0, 1):
 
     if net == 0:
         #Deep Q-Network
         network = DQN(2)
         file = open("Rewards_DQN.csv", "w")
         lossesFile = open("Losses_DQN.csv", "w")
+        averagesFile = open("Averages_DQN.csv", "w")
     elif net == 1:
         #Double DQN
         network = DoubleDQN(2)
         file = open("Rewards_DDQN.csv", "w")
         lossesFile = open("Losses_DDQN.csv", "w")
+        averagesFile = open("Averages_DDQN.csv", "w")
     elif net == 2:
         #Dueling DQN
         network = DuelingDQN(2)
         file = open("Rewards_DUEL_DQN.csv", "w")
         lossesFile = open("Losses_DUEL_DQN.csv", "w")
+        averagesFile = open("Averages_DUEL_DQN.csv", "w")
     else:
         #Dueling Double DQN
         network = DuelingDoubleDQN(2)
         file = open("Rewards_DUEL_DDQN.csv", "w")
         lossesFile = open("Losses_DUEL_DDQN.csv", "w")
+        averagesFile = open("Averages_DUEL_DDQN.csv", "w")
 
     max_score_counter = 0
     episode_rewards = []
     avg_losses = []
     losses = []
+    averages = []
 
     #--------------------------------------------- PLAY -----------------------------------------------------
     for t in range(0, TRAINING_EPISODES + EVALUATION_EPISODES):
@@ -99,6 +113,7 @@ for net in range(0, 2):
             # Keep learning from mistakes, but don't use training-experiences
             if t == TRAINING_EPISODES:
                 network.memory.memory.clear()
+                epsilon = 0.5
 
             #Select next action
             if t < TRAINING_EPISODES:
@@ -139,6 +154,11 @@ for net in range(0, 2):
                 history = network.replay(32)
                 losses.extend(history.history['loss'])
 
+        avg = np.average(network.average_Q)
+        averagesFile.write(str(avg) + '\n')
+        averages.append(avg)
+        network.average_Q.clear()
+
         env.reset()
         if t % 10 == 0:
             avg = np.average(losses)
@@ -147,6 +167,7 @@ for net in range(0, 2):
             losses = []
             plot_rewards(episode_rewards)
             plot_loss(avg_losses)
+            plot_averageQ(averages)
 
         if t % 100 == 0:
             network.save()

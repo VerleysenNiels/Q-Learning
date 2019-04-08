@@ -10,9 +10,9 @@ from Replay_Memory import ReplayMemory
 
 class DoubleDQN:
 
-    def __init__(self, action_size, gamma=0.9, eps_dec=0.999, lr=5e-3):
+    def __init__(self, action_size, gamma=0.95, eps_dec=0.999, lr=1e-3):
         self.action_size = action_size
-        self.memory = ReplayMemory(10000)
+        self.memory = ReplayMemory(6000)
         # Discount rate
         self.gamma = gamma
         # Setup epsilon-greedy parameters
@@ -25,6 +25,8 @@ class DoubleDQN:
         self.step = 0
         self.C = 5
 
+        self.average_Q = []
+
         self.actions = [x for x in range(0, action_size)]
 
         self.target_model = self.create_model()
@@ -34,6 +36,8 @@ class DoubleDQN:
     def act(self, state):
         act_values = self.policy_model.predict(state, batch_size=1)
         print(act_values)
+        avg_Q = np.average(act_values)
+        self.average_Q.append(avg_Q)
         return np.argmax(act_values[0])  # returns action
 
     # Act-method from paper

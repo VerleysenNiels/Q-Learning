@@ -1,0 +1,10 @@
+50 episodes EXPLORATION
+lr = 5.0e-3
+gamma = 0.9
+Reward for living = 0
+Punishment for dying = -1
+epsilon greedy action selection (same values as paper)
+no bias initialisation
+c = 5
+set done to false when achieving maximum score
+increased memory size (6 000)
