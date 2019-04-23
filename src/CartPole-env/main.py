@@ -54,7 +54,7 @@ next_state = None
 done = 0
 NR_MAX_SCORE = 3
 
-for net in range(0, 1):
+for net in range(1, 2):
 
     if net == 0:
         #Deep Q-Network
@@ -116,7 +116,7 @@ for net in range(0, 1):
                 epsilon = 0.5
 
             #Select next action
-            if t < TRAINING_EPISODES:
+            if t < TRAINING_EPISODES or t % 25 == 0:
                 current_action = network.act_stochastic(state)
             else:
                 #current_action = network.act(state)
@@ -139,18 +139,17 @@ for net in range(0, 1):
 
             if done and not bool_end:
                 reward = -1.  # crashed
+                network.memoryDied.push(state, current_action, next_state, reward, done)
             else:
                 reward = 0.
-
-            # Push transition to memory
-            if bool_end:
-                network.memory.push(state, current_action, next_state, reward, False)
-            else:
-                network.memory.push(state, current_action, next_state, reward, done)
+                # Push transition to memory
+                if bool_end:
+                    network.memory.push(state, current_action, next_state, reward, False)
+                else:
+                    network.memory.push(state, current_action, next_state, reward, done)
 
             #Replay
-                                #Ability to stop training when evaluating
-            if network.memory.__len__() > 32: # and max_score_counter < NR_MAX_SCORE:
+            if len(network.memory) > 32 and len(network.memoryDied) > 15:
                 history = network.replay(32)
                 losses.extend(history.history['loss'])
 

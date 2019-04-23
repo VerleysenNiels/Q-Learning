@@ -1,0 +1,12 @@
+50 episodes EXPLORATION
+lr = 7.0e-3
+gamma = 0.95
+Reward for living = 0
+Punishment for dying = -1
+epsilon greedy action selection (same values as paper)
+no bias initialisation
+c = 5
+set done to false when achieving maximum score
+increased memory size (6 000) + memory for experiences of dying (size 100)
+select 0.7 * batchsize from first memory and 0.3 * batchsize from second memory
+every 25 episodes act stochastically for 1 episode

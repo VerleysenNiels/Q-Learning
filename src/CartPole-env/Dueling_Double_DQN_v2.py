@@ -8,20 +8,22 @@ from Replay_Memory import ReplayMemory
 
 class DuelingDoubleDQN:
 
-    def __init__(self, action_size, gamma=0.99, eps_dec=0.99, lr=2.5e-2):
+    def __init__(self, action_size, gamma=0.95, eps_dec=0.999, lr=1e-3):
         self.action_size = action_size
-        self.memory = ReplayMemory(1000)
+        self.memory = ReplayMemory(6000)
         # Discount rate
         self.gamma = gamma
         # Setup epsilon-greedy parameters
         self.epsilon = 1.0
-        self.epsilon_min = 0.2
+        self.epsilon_min = 0.1
         self.epsilon_decay = eps_dec
         # Learning rate
         self.learning_rate = lr
         # Iterative update
         self.step = 0
         self.C = 5
+
+        self.average_Q = []
 
         self.actions = [x for x in range(0, action_size)]
 
@@ -32,7 +34,16 @@ class DuelingDoubleDQN:
     def act(self, state):
         act_values = self.policy_model.predict(state, batch_size=1)
         print(act_values)
+        avg_Q = np.average(act_values)
+        self.average_Q.append(avg_Q)
         return np.argmax(act_values[0])  # returns action
+
+    # Act-method from paper
+    def act_eps_greedy(self, state):
+        if np.random.rand() <= self.epsilon:
+            return random.randrange(self.action_size)
+        else:
+            return self.act(state)
 
     # Return a weighted random action where the estimated Q-values are used as weights
     # Also apply epsilon-greedy action selection
@@ -50,7 +61,8 @@ class DuelingDoubleDQN:
     def map_targets(self, transition):
         target = transition[3]  # 0 now manually set at main.
         if not transition[4]:
-            target = transition[3] + self.gamma * self.target_model.predict(transition[2])[0][np.argmax(self.policy_model.predict(transition[2])[0])]
+            target = transition[3] + self.gamma * self.target_model.predict(transition[2])[0][
+                np.argmax(self.policy_model.predict(transition[2])[0])]
         # Update policy_model
         target_f = self.policy_model.predict(transition[0], batch_size=1)
         target_f[0][transition[1]] = target
@@ -61,8 +73,8 @@ class DuelingDoubleDQN:
 
     def replay(self, batch_size):
         minibatch = self.memory.sample(batch_size)
-        self.policy_model.fit(np.array(list(map(self.map_states, minibatch))),
-                              np.array(list(map(self.map_targets, minibatch))), verbose=0)
+        history = self.policy_model.fit(np.array(list(map(self.map_states, minibatch))),
+                                        np.array(list(map(self.map_targets, minibatch))), verbose=0)
         self.update_epsilon()
 
         # Iterative update
@@ -71,6 +83,8 @@ class DuelingDoubleDQN:
             self.step = 0
         else:
             self.step += 1
+
+        return history
 
     def update_epsilon(self):
         if self.epsilon > self.epsilon_min:

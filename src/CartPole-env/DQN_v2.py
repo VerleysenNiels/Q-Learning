@@ -10,12 +10,13 @@ from Replay_Memory import ReplayMemory
 
 class DQN:
 
-    def __init__(self, action_size, gamma=0.95,  # 0.99
-                 eps_dec=0.999,
-                 lr=1e-3
+    def __init__(self, action_size, gamma=0.9,  # 0.99
+                 eps_dec=0.99,
+                 lr=3e-3
                  ):
         self.action_size = action_size
         self.memory = ReplayMemory(6000)
+        self.memoryDied = ReplayMemory(200)
         # Discount rate
         self.gamma = gamma
         # Setup epsilon-greedy parameters
@@ -76,7 +77,8 @@ class DQN:
         return np.array(transition[0][0])
 
     def replay(self, batch_size):
-        minibatch = self.memory.sample(batch_size)
+        minibatch = self.memory.sample(int(batch_size*0.7))
+        minibatch.extend(self.memoryDied.sample(int(batch_size*0.3)))
         history = self.policy_model.fit(np.array(list(map(self.map_states, minibatch))), np.array(list(map(self.map_targets, minibatch))), verbose=0)
         self.update_epsilon()
 
@@ -103,8 +105,8 @@ class DQN:
             return r
 
         model = Sequential()
-        model.add(Dense(6, activation='elu', input_shape=(4,)))
-        model.add(Dense(self.action_size))#, bias_initializer=Constant(100)))
+        model.add(Dense(10, activation='elu', input_shape=(4,)))
+        model.add(Dense(self.action_size))
         model.compile(loss=masked_mse, optimizer=optimizers.Adam(lr=self.learning_rate))
         return model
 
