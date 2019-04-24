@@ -6,6 +6,7 @@ Transition = namedtuple('Transition', ('state', 'action', 'next_state', 'reward'
 class ReplayMemory(object):
     def __init__(self, capacity):
         self.capacity = capacity
+        self.position = 0
         self.memory = []
 
     def push(self, *args):
@@ -13,7 +14,10 @@ class ReplayMemory(object):
         if len(self.memory) < self.capacity:
             self.memory.append(Transition(*args))
         else:
-            self.memory[random.randint(0, self.capacity-1)] = Transition(*args)
+            self.memory[self.position] = Transition(*args)
+            self.position += 1
+            if self.position == self.capacity:
+                self.position = 0
 
     def sample(self, batch_size):
         return random.sample(self.memory, batch_size)

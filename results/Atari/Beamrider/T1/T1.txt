@@ -1,0 +1,10 @@
+State = 1 resized frame in grayscale
+Always epsilon greedy
+Split experiences (dead vs alive)
+gamma: 0.95
+eps_dec: 0.99
+lr = 5e-4
+mem_size: 6000
+dead_mem_size: 100
+eps_min = 0.1
+C: 5
