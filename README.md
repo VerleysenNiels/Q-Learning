@@ -12,6 +12,8 @@ Current algorithms:
 
 Beamrider-v4 was used as Atari environment first, however the algorithms had difficulties with the second level as the environment changes. Because of this I changed to the Boxing environment, but the scripts and classes can be used on other environments as well.
 
+Although the dueling architecture was implemented for CartPole, these versions were not able to find a decent policy while testing. This might be because the architecture is too complex for solving CartPole.
+
 ## Structure
 The source and results folder have the same structure, the results (csv files and extracted graphs) from the algorithms that can be found in the source folder are put in the results folder. The different algorithms are trained in the environment while running the main.py file that can be found in the same location as the algorithms. This main.py file does the necessary preprocessing, manages the results and the training and evaluation of the algorithms. 
 
