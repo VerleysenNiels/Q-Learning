@@ -79,7 +79,7 @@ def plot_averageQ(averages):
 env = gym.make('BeamRider-v4')
 env.reset()
 TRAINING_EPISODES = 0
-EVALUATION_EPISODES = 1000
+EVALUATION_EPISODES = 500
 current_action = 0
 state = None
 done = 0
@@ -87,7 +87,7 @@ done = 0
 ACTIONS = [0, 1, 3, 4]
 ACTION_MEANINGS = ['NO-OP', 'FIRE', 'RIGHT', 'LEFT']
 
-for net in range(0, 1):
+for net in range(1, 2):
 
     if net == 0:
         #Deep Q-Network
@@ -158,7 +158,7 @@ for net in range(0, 1):
                 network.epsilon = 0.75
 
             # Select next action
-            if t < TRAINING_EPISODES or t % 25 == 0:
+            if t < TRAINING_EPISODES: # or t % 25 == 0:
                 #current_action = network.act_stochastic(state)
                 current_action = random.randint(0, 3)
             else:
@@ -192,7 +192,10 @@ for net in range(0, 1):
                 trans = buffer.deadTrans()
                 #cv2.imshow('preprocessed', np.reshape(np.squeeze(trans[0], axis=0), (110, 80)))
                 #cv2.waitKey(0)
-                network.memoryDied.push(trans[0], trans[1], trans[2], -10, trans[4])
+                if not done:
+                    network.memoryDied.push(trans[0], trans[1], trans[2], -10, trans[4])
+                else:
+                    network.memoryDied.push(trans[0], trans[1], trans[2], -100, trans[4])
             else:
                 trans = buffer.push(state, current_action, next_state, reward, done)
                 if trans is not None:

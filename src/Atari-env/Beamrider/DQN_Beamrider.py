@@ -9,10 +9,10 @@ from Replay_Memory import ReplayMemory
 
 class DQN:
 
-    def __init__(self, action_size, gamma=0.95, eps_dec=0.99, lr=3e-3):
+    def __init__(self, action_size, gamma=0.95, eps_dec=0.99, lr=3e-5):
         self.action_size = action_size
-        self.memory = ReplayMemory(6000)
-        self.memoryDied = ReplayMemory(200)
+        self.memory = ReplayMemory(10000)
+        self.memoryDied = ReplayMemory(250)
         # Discount rate
         self.gamma = gamma
         # Setup epsilon-greedy parameters
