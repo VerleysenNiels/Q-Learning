@@ -11,7 +11,7 @@ from keras import backend as K
 
 class DoubleDQN:
 
-    def __init__(self, action_size, gamma=0.95, eps_dec=0.99, lr=3e-5):
+    def __init__(self, action_size, gamma=0.95, eps_dec=0.99, lr=7e-5):
         self.action_size = action_size
         self.memory = ReplayMemory(10000)
         self.memoryDied = ReplayMemory(250)
@@ -99,7 +99,7 @@ class DoubleDQN:
             return r
 
         # CNN
-        model.add(Conv2D(32, kernel_size=8, activation='elu', input_shape=(84, 84, 1), strides=4))
+        model.add(Conv2D(32, kernel_size=8, activation='elu', input_shape=(80, 80, 1), strides=4))
         model.add(Conv2D(64, kernel_size=4, activation='elu', strides=2))
         model.add(Conv2D(64, kernel_size=3, activation='elu', strides=1))
         model.add(Flatten())
