@@ -1,4 +1,4 @@
-from keras.layers import Dense, Lambda
+from keras.layers import Dense, Lambda, Add
 from keras import optimizers, Model, Input
 import keras.backend as K
 import random
@@ -8,20 +8,23 @@ from Replay_Memory import ReplayMemory
 
 class DuelingDQN:
 
-    def __init__(self, action_size, gamma=0.99, eps_dec=0.99, lr=2.5e-2):
+    def __init__(self, action_size, gamma=0.95, eps_dec=0.99, lr=1e-3):
         self.action_size = action_size
         self.memory = ReplayMemory(1000)
+        self.memoryDied = ReplayMemory(200)
         # Discount rate
         self.gamma = gamma
         # Setup epsilon-greedy parameters
         self.epsilon = 1.0
-        self.epsilon_min = 0.2
+        self.epsilon_min = 0.1
         self.epsilon_decay = eps_dec
         # Learning rate
         self.learning_rate = lr
         # Iterative update
         self.step = 0
         self.C = 5
+
+        self.average_Q = []
 
         self.actions = [x for x in range(0, action_size)]
 
@@ -32,7 +35,16 @@ class DuelingDQN:
     def act(self, state):
         act_values = self.policy_model.predict(state, batch_size=1)
         print(act_values)
+        avg_Q = np.average(act_values)
+        self.average_Q.append(avg_Q)
         return np.argmax(act_values[0])  # returns action
+
+    # Act-method from paper
+    def act_eps_greedy(self, state):
+        if np.random.rand() <= self.epsilon:
+            return random.randrange(self.action_size)
+        else:
+            return self.act(state)
 
     # Return a weighted random action where the estimated Q-values are used as weights
     # Also apply epsilon-greedy action selection
@@ -60,8 +72,10 @@ class DuelingDQN:
         return np.array(transition[0][0])
 
     def replay(self, batch_size):
-        minibatch = self.memory.sample(batch_size)
-        self.policy_model.fit(np.array(list(map(self.map_states, minibatch))), np.array(list(map(self.map_targets, minibatch))), verbose=0)
+        minibatch = self.memory.sample(int(batch_size * 0.7))
+        minibatch.extend(self.memoryDied.sample(int(batch_size * 0.3)))
+        history = self.policy_model.fit(np.array(list(map(self.map_states, minibatch))),
+                                        np.array(list(map(self.map_targets, minibatch))), verbose=0)
         self.update_epsilon()
 
         # Iterative update
@@ -70,6 +84,8 @@ class DuelingDQN:
             self.step = 0
         else:
             self.step += 1
+
+        return history
 
     def update_epsilon(self):
         if self.epsilon > self.epsilon_min:
@@ -85,19 +101,26 @@ class DuelingDQN:
             return r
 
         input = Input(shape=(4,))
-        fc1 = Dense(12, activation='elu')(input)
+        fc1 = Dense(10, activation='elu')(input)
+        fc1 = Dense(10, activation='elu')(fc1)
 
         #VALUE FUNCTION ESTIMATOR
-        val2 = Dense(1)(fc1)
+        value = Dense(10, activation='elu')(fc1)
+        value = Dense(1)(value)
 
         #ADVANTAGE FUNCTION ESTIMATOR
-        adv2 = Dense(self.action_size)(fc1)
+        advt = Dense(10, activation='elu')(fc1)
+        advt = Dense(self.action_size)(advt)
 
         #COMBINE
-        merge_layer = Lambda(lambda x: np.add(np.full_like(x[0], x[1][0, 0]), np.subtract(x[0], np.full_like(x[0], K.tf.reduce_mean(x[0])))), output_shape=lambda x: x[0])
-        merge = merge_layer([adv2, val2])
+        #merge_layer = Lambda(lambda x: np.add(np.full_like(x[0], x[1][0, 0]), np.subtract(x[0], np.full_like(x[0], K.tf.reduce_mean(x[0])))), output_shape=lambda x: x[0])
+        #merge = merge_layer([adv2, val2])
 
-        model = Model(inputs=input, outputs=merge)
+        advt = Lambda(lambda advt: advt - K.tf.reduce_mean(advt, axis=-1, keep_dims=True))(advt)
+        value = Lambda(lambda value: K.tf.tile(value, [1, self.action_size]))(value)
+        final = Add()([value, advt])
+
+        model = Model(inputs=input, outputs=final)
         model.compile(loss=masked_mse, optimizer=optimizers.Adam(lr=self.learning_rate))
         return model
 

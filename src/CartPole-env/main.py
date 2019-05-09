@@ -46,15 +46,15 @@ def plot_averageQ(averages):
 #INIT
 env = gym.make('CartPole-v1')
 env.reset()
-TRAINING_EPISODES = 50
-EVALUATION_EPISODES = 1000
+TRAINING_EPISODES = 0
+EVALUATION_EPISODES = 600
 current_action = 0
 state = None
 next_state = None
 done = 0
 NR_MAX_SCORE = 3
 
-for net in range(1, 2):
+for net in range(2, 3):
 
     if net == 0:
         #Deep Q-Network
@@ -103,6 +103,9 @@ for net in range(1, 2):
             current_action = random.randint(0, 1)
             next_state, reward, done, _ = env.step(current_action)
             next_state = np.expand_dims(next_state, axis=0)
+
+        if t == TRAINING_EPISODES +1:
+            network.epsilon = 0.6
 
         print("-----Start:")
         episode_rewards.append(0)
@@ -168,8 +171,8 @@ for net in range(1, 2):
             plot_loss(avg_losses)
             plot_averageQ(averages)
 
-        if t % 100 == 0:
-            network.save()
+        #if t % 100 == 0:
+        #    network.save()
 
         if episode_rewards[t] >= 499:
             max_score_counter += 1
