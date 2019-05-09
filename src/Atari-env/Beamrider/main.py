@@ -78,7 +78,7 @@ def plot_averageQ(averages):
 # INIT
 env = gym.make('BeamRider-v4')
 env.reset()
-TRAINING_EPISODES = 0
+TRAINING_EPISODES = 15
 EVALUATION_EPISODES = 500
 current_action = 0
 state = None

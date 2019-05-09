@@ -11,7 +11,7 @@ from keras import backend as K
 
 class DoubleDQN:
 
-    def __init__(self, action_size, gamma=0.95, eps_dec=0.99, lr=7e-5):
+    def __init__(self, action_size, gamma=0.97, eps_dec=0.99, lr=1e-4):
         self.action_size = action_size
         self.memory = ReplayMemory(10000)
         self.memoryDied = ReplayMemory(250)
