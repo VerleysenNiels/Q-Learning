@@ -1,4 +1,4 @@
-from keras.layers import Dense, Lambda
+from keras.layers import Dense, Lambda, Add
 from keras import optimizers, Model, Input
 import keras.backend as K
 import random
@@ -99,19 +99,23 @@ class DuelingDoubleDQN:
             return r
 
         input = Input(shape=(4,))
-        fc1 = Dense(12, activation='elu')(input)
+        fc1 = Dense(10, activation='elu')(input)
+        fc1 = Dense(10, activation='elu')(fc1)
 
-        #VALUE FUNCTION ESTIMATOR
-        val2 = Dense(1)(fc1)
+        # VALUE FUNCTION ESTIMATOR
+        value = Dense(10, activation='elu')(fc1)
+        value = Dense(1)(value)
 
-        #ADVANTAGE FUNCTION ESTIMATOR
-        adv2 = Dense(self.action_size)(fc1)
+        # ADVANTAGE FUNCTION ESTIMATOR
+        advt = Dense(10, activation='elu')(fc1)
+        advt = Dense(self.action_size)(advt)
 
-        #COMBINE
-        merge_layer = Lambda(lambda x: np.add(np.full_like(x[0], x[1][0, 0]), np.subtract(x[0], np.full_like(x[0], K.tf.reduce_mean(x[0])))), output_shape=lambda x: x[0])
-        merge = merge_layer([adv2, val2])
+        # COMBINE
+        advt = Lambda(lambda advt: advt - K.tf.reduce_mean(advt, axis=-1, keep_dims=True))(advt)
+        value = Lambda(lambda value: K.tf.tile(value, [1, self.action_size]))(value)
+        final = Add()([value, advt])
 
-        model = Model(inputs=input, outputs=merge)
+        model = Model(inputs=input, outputs=final)
         model.compile(loss=masked_mse, optimizer=optimizers.Adam(lr=self.learning_rate))
         return model
 

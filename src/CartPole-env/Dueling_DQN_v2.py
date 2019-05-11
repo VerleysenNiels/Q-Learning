@@ -113,9 +113,6 @@ class DuelingDQN:
         advt = Dense(self.action_size)(advt)
 
         #COMBINE
-        #merge_layer = Lambda(lambda x: np.add(np.full_like(x[0], x[1][0, 0]), np.subtract(x[0], np.full_like(x[0], K.tf.reduce_mean(x[0])))), output_shape=lambda x: x[0])
-        #merge = merge_layer([adv2, val2])
-
         advt = Lambda(lambda advt: advt - K.tf.reduce_mean(advt, axis=-1, keep_dims=True))(advt)
         value = Lambda(lambda value: K.tf.tile(value, [1, self.action_size]))(value)
         final = Add()([value, advt])

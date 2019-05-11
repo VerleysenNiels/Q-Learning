@@ -1,5 +1,5 @@
 from keras.models import Model
-from keras.layers import Input, Dense, Lambda, Conv2D, Flatten
+from keras.layers import Input, Dense, Lambda, Conv2D, Flatten, Add
 from keras import optimizers
 import tensorflow as tf
 import random
@@ -95,7 +95,7 @@ class DuelingDQN:
             r = K.sum(masked_squared_error, axis=-1)  # / K.sum(mask_true, axis=-1)
             return r
 
-        input = Input(shape=(84, 84, 1))
+        input = Input(shape=(80, 80, 1))
 
         # CNN
         cnn1 = Conv2D(32, kernel_size=8, activation='elu', strides=4)(input)
@@ -105,18 +105,18 @@ class DuelingDQN:
 
 
         # VALUE FUNCTION ESTIMATOR
-        val1 = Dense(512, activation='elu')(cnn4)
-        val2 = Dense(1)(val1)
+        value = Dense(512, activation='elu')(cnn4)
+        value = Dense(1)(value)
 
         # ADVANTAGE FUNCTION ESTIMATOR
-        adv1 = Dense(512, activation='elu')(cnn4)
-        adv2 = Dense(self.action_size)(adv1)
+        advt = Dense(512, activation='elu')(cnn4)
+        advt = Dense(self.action_size)(advt)
 
-        # COMBINE
-        merge_layer = Lambda(lambda x: np.add(np.full_like(x[0], x[1][0, 0]), np.subtract(x[0], np.full_like(x[0], tf.reduce_mean(x[0])))), output_shape=lambda x: x[0])
-        merge = merge_layer([adv2, val2])
+        advt = Lambda(lambda advt: advt - K.tf.reduce_mean(advt, axis=-1, keep_dims=True))(advt)
+        value = Lambda(lambda value: K.tf.tile(value, [1, self.action_size]))(value)
+        final = Add()([value, advt])
 
-        model = Model(inputs=input, outputs=merge)
+        model = Model(inputs=input, outputs=final)
         model.compile(loss=masked_mse, optimizer=optimizers.Adam(lr=self.learning_rate))
         return model
 
