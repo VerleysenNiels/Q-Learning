@@ -46,15 +46,15 @@ def plot_averageQ(averages):
 #INIT
 env = gym.make('CartPole-v1')
 env.reset()
-TRAINING_EPISODES = 0
-EVALUATION_EPISODES = 600
+TRAINING_EPISODES = 10
+EVALUATION_EPISODES = 500
 current_action = 0
 state = None
 next_state = None
 done = 0
 NR_MAX_SCORE = 3
 
-for net in range(2, 3):
+for net in range(3, 4):
 
     if net == 0:
         #Deep Q-Network
