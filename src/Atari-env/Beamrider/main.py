@@ -20,7 +20,7 @@ def preprocess_images(images):
 
     # Transform frames to grayscale
     #images[0] = cv2.cvtColor(images[0], cv2.COLOR_BGR2GRAY)
-    #images[1] = cv2.cvtColor(images[1], cv2.COLOR_BGR2GRAY)
+    images[1] = cv2.cvtColor(images[1], cv2.COLOR_BGR2GRAY)
 
     # Cut top border from image
     images[1] = images[1][25:105, 0:80]
@@ -38,7 +38,7 @@ def preprocess_images(images):
 
     # Keras needs 4 dimensions, first dimension gives number of the data
     # Add extra axis in front and fill in with 1
-    #i = np.reshape(i, (80, 80, 1))
+    i = np.reshape(i, (80, 80, 1))
     i = np.expand_dims(i, axis=0)
     return i
 
@@ -87,7 +87,7 @@ done = 0
 ACTIONS = [0, 1, 3, 4]
 ACTION_MEANINGS = ['NO-OP', 'FIRE', 'RIGHT', 'LEFT']
 
-for net in range(2, 3):
+for net in range(3, 4):
 
     if net == 0:
         #Deep Q-Network

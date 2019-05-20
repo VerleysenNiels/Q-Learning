@@ -95,7 +95,7 @@ class DuelingDQN:
             r = K.sum(masked_squared_error, axis=-1)  # / K.sum(mask_true, axis=-1)
             return r
 
-        input = Input(shape=(80, 80, 3))
+        input = Input(shape=(80, 80, 1))
 
         # CNN
         cnn1 = Conv2D(32, kernel_size=8, activation='elu', strides=4)(input)
