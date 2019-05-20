@@ -9,10 +9,10 @@ from keras import backend as K
 
 class DuelingDQN:
 
-    def __init__(self, action_size, gamma=0.95, eps_dec=0.99, lr=3e-3):
+    def __init__(self, action_size, gamma=0.95, eps_dec=0.99, lr=3e-5):
         self.action_size = action_size
-        self.memory = ReplayMemory(6000)
-        self.memoryDied = ReplayMemory(100)
+        self.memory = ReplayMemory(10000)
+        self.memoryDied = ReplayMemory(250)
         # Discount rate
         self.gamma = gamma
         # Setup epsilon-greedy parameters
@@ -95,7 +95,7 @@ class DuelingDQN:
             r = K.sum(masked_squared_error, axis=-1)  # / K.sum(mask_true, axis=-1)
             return r
 
-        input = Input(shape=(80, 80, 1))
+        input = Input(shape=(80, 80, 3))
 
         # CNN
         cnn1 = Conv2D(32, kernel_size=8, activation='elu', strides=4)(input)
