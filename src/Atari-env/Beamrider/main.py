@@ -87,7 +87,7 @@ done = 0
 ACTIONS = [0, 1, 3, 4]
 ACTION_MEANINGS = ['NO-OP', 'FIRE', 'RIGHT', 'LEFT']
 
-for net in range(3, 4):
+for net in range(2, 3):
 
     if net == 0:
         #Deep Q-Network
